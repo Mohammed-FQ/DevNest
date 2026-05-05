@@ -23,7 +23,7 @@
             {% if not request.user.is_authenticated %}
             <div class="d-flex gap-3 flex-wrap mb-3">
                 <a href="{% url 'accounts:sign_up' %}?next=/" class="btn btn-primary btn-lg px-4">
-                    <i class="bi bi-person-plus me-1"></i> Get Started — It's Free
+                    <i class="bi bi-person-plus me-1"></i> Get Started
                 </a>
                 <a href="{% url 'accounts:sign_in' %}?next=/" class="btn btn-outline-secondary btn-lg px-4">
                     <i class="bi bi-box-arrow-in-right me-1"></i> Log In
