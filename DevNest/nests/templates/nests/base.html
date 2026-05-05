@@ -1,10 +1,20 @@
 {% load static %}
 <!doctype html>
 <html lang="en">
+
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{% block title %}DevNest{% endblock %}</title>
+	<meta name="description" content="{% block description %}DevNest - Interactive Learning Platform{% endblock %}">
+	<meta property="og:title" content="{% block og_title %}DevNest{% endblock %}">
+	<meta property="og:description"
+		content="{% block og_description %}Modern Interactive Learning Platform{% endblock %}">
+	<meta property="og:image" content="{% static 'images/logo.svg' %}">
+	<meta property="og:type" content="website">
+	<meta property="og:site_name" content="DevNest">
+	<link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+	<!-- <link rel="apple-touch-icon" href="{% static 'images/apple-touch-icon.png' %}"> -->
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 	<link rel="stylesheet" href="{% static 'css/nests.css' %}">
@@ -15,7 +25,8 @@
 <body class="nest-shell">
 	<div class="nest-layout">
 		<!-- Offcanvas Sidebar for Mobile -->
-		<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+		<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileSidebar"
+			aria-labelledby="mobileSidebarLabel">
 			<div class="offcanvas-header">
 				<h5 class="offcanvas-title" id="mobileSidebarLabel">Menu</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -25,27 +36,42 @@
 				<nav class="nest-sidebar__nav" aria-label="Primary">
 					<ul class="nav flex-column w-100">
 						<li class="nav-item">
-							<a class="nav-link nest-sidebar__link {% if request.path == '/nests/' %}is-active{% endif %}" href="{% url 'nests:nest_dashboard' %}">
-								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" stroke="currentColor"/></svg>
+							<a class="nav-link nest-sidebar__link {% if request.path == '/nests/' %}is-active{% endif %}"
+								href="{% url 'nests:nest_dashboard' %}">
+								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+									<path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z"
+										stroke="currentColor" />
+								</svg>
 								<span>Dashboard</span>
 							</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link nest-sidebar__link {% if '/nests/browse/' in request.path %}is-active{% endif %}" href="{% url 'nests:nest_list_view' %}">
-								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 3H4v7h7V3Zm9 0h-7v7h7V3ZM11 14H4v7h7v-7Zm9 0h-7v7h7v-7Z" stroke="currentColor"/></svg>
+							<a class="nav-link nest-sidebar__link {% if '/nests/browse/' in request.path %}is-active{% endif %}"
+								href="{% url 'nests:nest_list_view' %}">
+								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+									<path d="M11 3H4v7h7V3Zm9 0h-7v7h7V3ZM11 14H4v7h7v-7Zm9 0h-7v7h7v-7Z"
+										stroke="currentColor" />
+								</svg>
 								<span>Browse Nests</span>
 							</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link nest-sidebar__link {% if '/nests/request/' in request.path %}is-active{% endif %}" href="{% url 'nests:request_nest_view' %}">
-								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor"/></svg>
+							<a class="nav-link nest-sidebar__link {% if '/nests/request/' in request.path %}is-active{% endif %}"
+								href="{% url 'nests:request_nest_view' %}">
+								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+									<path d="M12 5v14M5 12h14" stroke="currentColor" />
+								</svg>
 								<span>Request Nest</span>
 							</a>
 						</li>
 						{% if request.user.is_staff or request.user.is_superuser %}
 						<li class="nav-item">
-							<a class="nav-link nest-sidebar__link {% if '/nests/staff/review/' in request.path %}is-active{% endif %}" href="{% url 'nests:staff_nest_review' %}">
-								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 7 3v6c0 5-3.5 8.7-7 10-3.5-1.3-7-5-7-10V6l7-3Z" stroke="currentColor"/></svg>
+							<a class="nav-link nest-sidebar__link {% if '/nests/staff/review/' in request.path %}is-active{% endif %}"
+								href="{% url 'nests:staff_nest_review' %}">
+								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+									<path d="m12 3 7 3v6c0 5-3.5 8.7-7 10-3.5-1.3-7-5-7-10V6l7-3Z"
+										stroke="currentColor" />
+								</svg>
 								<span>Staff Review</span>
 							</a>
 						</li>
@@ -54,12 +80,18 @@
 				</nav>
 				{% if request.user.is_authenticated %}
 				<div class="nest-sidebar__footer">
-					<a class="nest-sidebar__link {% if '/accounts/profile/' in request.path %}is-active{% endif %}" href="{% url 'accounts:user_profile_view' request.user.username %}">
-						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" stroke="currentColor"/></svg>
+					<a class="nest-sidebar__link {% if '/accounts/profile/' in request.path %}is-active{% endif %}"
+						href="{% url 'accounts:user_profile_view' request.user.username %}">
+						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" stroke="currentColor" />
+						</svg>
 						<span>{{ request.user.username }}</span>
 					</a>
 					<a class="nest-sidebar__link" href="{% url 'accounts:log_out' %}?next={{request.path}}">
-						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 7H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h3M16 17l5-5-5-5M21 12H9" stroke="currentColor"/></svg>
+						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<path d="M9 7H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h3M16 17l5-5-5-5M21 12H9"
+								stroke="currentColor" />
+						</svg>
 						<span>Log Out</span>
 					</a>
 				</div>
@@ -70,38 +102,56 @@
 		<!-- Desktop Sidebar -->
 		<aside class="nest-sidebar d-none d-lg-flex" style="flex-direction:column;">
 			<a class="nest-sidebar__brand" href="/">
-				<img src="{% static 'images/logo.svg' %}" alt="DevNest" width="28" height="28" style="border-radius:6px;">
+				<img src="{% static 'images/logo.svg' %}" alt="DevNest" width="28" height="28"
+					style="border-radius:6px;">
 				<span class="nest-sidebar__name">DevNest</span>
 			</a>
 			<nav class="nest-sidebar__nav" aria-label="Primary">
-				<a class="nest-sidebar__link {% if request.path == '/nests/' %}is-active{% endif %}" href="{% url 'nests:nest_dashboard' %}">
-					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" stroke="currentColor"/></svg>
+				<a class="nest-sidebar__link {% if request.path == '/nests/' %}is-active{% endif %}"
+					href="{% url 'nests:nest_dashboard' %}">
+					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" stroke="currentColor" />
+					</svg>
 					<span>Dashboard</span>
 				</a>
-				<a class="nest-sidebar__link {% if '/nests/browse/' in request.path %}is-active{% endif %}" href="{% url 'nests:nest_list_view' %}">
-					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 3H4v7h7V3Zm9 0h-7v7h7V3ZM11 14H4v7h7v-7Zm9 0h-7v7h7v-7Z" stroke="currentColor"/></svg>
+				<a class="nest-sidebar__link {% if '/nests/browse/' in request.path %}is-active{% endif %}"
+					href="{% url 'nests:nest_list_view' %}">
+					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path d="M11 3H4v7h7V3Zm9 0h-7v7h7V3ZM11 14H4v7h7v-7Zm9 0h-7v7h7v-7Z" stroke="currentColor" />
+					</svg>
 					<span>Browse Nests</span>
 				</a>
-				<a class="nest-sidebar__link {% if '/nests/request/' in request.path %}is-active{% endif %}" href="{% url 'nests:request_nest_view' %}">
-					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor"/></svg>
+				<a class="nest-sidebar__link {% if '/nests/request/' in request.path %}is-active{% endif %}"
+					href="{% url 'nests:request_nest_view' %}">
+					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path d="M12 5v14M5 12h14" stroke="currentColor" />
+					</svg>
 					<span>Request Nest</span>
 				</a>
 				{% if request.user.is_staff or request.user.is_superuser %}
-					<a class="nest-sidebar__link {% if '/nests/staff/review/' in request.path %}is-active{% endif %}" href="{% url 'nests:staff_nest_review' %}">
-						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 7 3v6c0 5-3.5 8.7-7 10-3.5-1.3-7-5-7-10V6l7-3Z" stroke="currentColor"/></svg>
-						<span>Staff Review</span>
-					</a>
+				<a class="nest-sidebar__link {% if '/nests/staff/review/' in request.path %}is-active{% endif %}"
+					href="{% url 'nests:staff_nest_review' %}">
+					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path d="m12 3 7 3v6c0 5-3.5 8.7-7 10-3.5-1.3-7-5-7-10V6l7-3Z" stroke="currentColor" />
+					</svg>
+					<span>Staff Review</span>
+				</a>
 				{% endif %}
 			</nav>
 
 			{% if request.user.is_authenticated %}
 			<div class="nest-sidebar__footer">
-				<a class="nest-sidebar__link {% if '/accounts/profile/' in request.path %}is-active{% endif %}" href="{% url 'accounts:user_profile_view' request.user.username %}">
-					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" stroke="currentColor"/></svg>
+				<a class="nest-sidebar__link {% if '/accounts/profile/' in request.path %}is-active{% endif %}"
+					href="{% url 'accounts:user_profile_view' request.user.username %}">
+					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" stroke="currentColor" />
+					</svg>
 					<span>{{ request.user.username }}</span>
 				</a>
 				<a class="nest-sidebar__link" href="{% url 'accounts:log_out' %}?next={{request.path}}">
-					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 7H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h3M16 17l5-5-5-5M21 12H9" stroke="currentColor"/></svg>
+					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path d="M9 7H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h3M16 17l5-5-5-5M21 12H9" stroke="currentColor" />
+					</svg>
 					<span>Log Out</span>
 				</a>
 			</div>
@@ -111,63 +161,77 @@
 		<div class="nest-main-wrap">
 			<header class="nest-topbar-v2">
 				<!-- Hamburger for mobile -->
-				<button class="btn btn-outline-secondary d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar" aria-label="Open menu">
+				<button class="btn btn-outline-secondary d-lg-none me-2" type="button" data-bs-toggle="offcanvas"
+					data-bs-target="#mobileSidebar" aria-controls="mobileSidebar" aria-label="Open menu">
 					<i class="bi bi-list" style="font-size:1.5rem;"></i>
 				</button>
 				<div class="nest-topbar-v2__crumb">{% block topbar_crumb %}DevNest / Nests{% endblock %}</div>
 				<div class="d-flex align-items-center gap-2">
 					{% if request.user.is_authenticated %}
-						<div class="dropdown">
-							<button class="btn btn-sm btn-light position-relative" type="button" id="nestNotifDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
-								<i class="bi bi-bell"></i>
+					<div class="dropdown">
+						<button class="btn btn-sm btn-light position-relative" type="button" id="nestNotifDropdown"
+							data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+							<i class="bi bi-bell"></i>
+							{% if unread_notifications_count %}
+							<span
+								class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{
+								unread_notifications_count }}</span>
+							{% endif %}
+						</button>
+						<div class="dropdown-menu dropdown-menu-end shadow-sm p-0" aria-labelledby="nestNotifDropdown"
+							style="min-width:320px;">
+							<div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+								<strong class="small">Notifications</strong>
 								{% if unread_notifications_count %}
-								<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ unread_notifications_count }}</span>
+								<a class="small text-decoration-none"
+									href="{% url 'main:read_all_notifications' %}?next={{ request.path }}">Mark all
+									read</a>
 								{% endif %}
-							</button>
-							<div class="dropdown-menu dropdown-menu-end shadow-sm p-0" aria-labelledby="nestNotifDropdown" style="min-width:320px;">
-								<div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-									<strong class="small">Notifications</strong>
-									{% if unread_notifications_count %}
-									<a class="small text-decoration-none" href="{% url 'main:read_all_notifications' %}?next={{ request.path }}">Mark all read</a>
-									{% endif %}
+							</div>
+							{% if unread_notifications %}
+							{% for notif in unread_notifications %}
+							<a class="dropdown-item small py-2"
+								href="{% url 'main:read_notification' notification_id=notif.pk %}">
+								<div>{{ notif.message }}</div>
+								<div class="text-muted" style="font-size:.75rem;">{{ notif.created_at|timesince }} ago
 								</div>
-								{% if unread_notifications %}
-									{% for notif in unread_notifications %}
-									<a class="dropdown-item small py-2" href="{% url 'main:read_notification' notification_id=notif.pk %}">
-										<div>{{ notif.message }}</div>
-										<div class="text-muted" style="font-size:.75rem;">{{ notif.created_at|timesince }} ago</div>
-									</a>
-									{% endfor %}
-								{% else %}
-									<div class="px-3 py-3 small text-muted">No unread notifications.</div>
-								{% endif %}
-								<div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
-									<a class="small text-decoration-none text-muted" href="{% url 'accounts:update_user_profile' %}#notif-prefs">
-										<i class="bi bi-sliders me-1"></i>Notification settings
-									</a>
-								</div>
+							</a>
+							{% endfor %}
+							{% else %}
+							<div class="px-3 py-3 small text-muted">No unread notifications.</div>
+							{% endif %}
+							<div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+								<a class="small text-decoration-none text-muted"
+									href="{% url 'accounts:update_user_profile' %}#notif-prefs">
+									<i class="bi bi-sliders me-1"></i>Notification settings
+								</a>
 							</div>
 						</div>
+					</div>
 					{% else %}
-						<a class="btn btn-sm btn-light" href="{% url 'accounts:sign_in' %}?next={{request.path}}">Sign in</a>
+					<a class="btn btn-sm btn-light" href="{% url 'accounts:sign_in' %}?next={{request.path}}">Sign
+						in</a>
 					{% endif %}
 				</div>
 			</header>
 
 			<main class="nest-content">
 				{% if messages %}
-					{% for message in messages %}
-						<div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
-							{{ message }}
-							<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-						</div>
-					{% endfor %}
+				{% for message in messages %}
+				<div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
+					{{ message }}
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				</div>
+				{% endfor %}
 				{% endif %}
 				{% block content %}{% endblock %}
 			</main>
 		</div>
 	</div>
 
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+		crossorigin="anonymous"></script>
 </body>
+
 </html>
