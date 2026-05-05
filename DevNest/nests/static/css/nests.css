@@ -195,10 +195,19 @@
     min-width: 230px;
     background: var(--nest-paper);
     border-right: 1px solid var(--nest-line);
-    min-height: calc(100vh - 63px);
+    height: calc(100vh - 63px);
     padding: 1.25rem 0;
     position: sticky;
     top: 63px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.nest-sidebar__footer {
+    margin-top: auto;
+    border-top: 1px solid var(--nest-line);
+    padding-top: 0.5rem;
 }
 
 .nest-nav {
