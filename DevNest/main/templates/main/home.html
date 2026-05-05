@@ -12,29 +12,33 @@
         <!-- Left: text -->
         <div class="col-12 col-lg-6">
             <span class="badge rounded-pill landing-badge mb-3 px-3 py-2 fw-semibold text-uppercase ls-wide">
-                Academic Platform
+                Built for Learners &amp; Instructors
             </span>
             <h1 class="display-5 fw-bold lh-sm mb-3 landing-title">
-                DevNest: A Unified Space<br>for Academic Growth.
+                Learn Together.<br>Grow Inside Your <span style="color:var(--accent, #1d3461)">Nest</span>.
             </h1>
             <p class="lead text-secondary mb-4 landing-subtitle">
-                DevNest is a collaborative academic platform designed to enhance student learning through
-                structured communities called <strong>Nests</strong>. It combines Q&amp;A discussions,
-                organised content, automated assessments, and AI-powered feedback in one place.
+                DevNest brings students and instructors together in focused communities called <strong>Nests</strong> — where you can ask questions, access course content, take assessments, and earn recognition, all in one place.
             </p>
             {% if not request.user.is_authenticated %}
-            <div class="d-flex gap-3 flex-wrap">
+            <div class="d-flex gap-3 flex-wrap mb-3">
                 <a href="{% url 'accounts:sign_up' %}?next=/" class="btn btn-primary btn-lg px-4">
-                    <i class="bi bi-person-plus me-1"></i> Sign Up
+                    <i class="bi bi-person-plus me-1"></i> Get Started — It's Free
                 </a>
                 <a href="{% url 'accounts:sign_in' %}?next=/" class="btn btn-outline-secondary btn-lg px-4">
                     <i class="bi bi-box-arrow-in-right me-1"></i> Log In
                 </a>
             </div>
+            <p class="text-muted small">Join your nest and start learning today.</p>
             {% else %}
-            <a href="{% url 'nests:nest_dashboard' %}" class="btn btn-primary btn-lg px-4">
-                <i class="bi bi-grid-1x2-fill me-1"></i> Go to Dashboard
-            </a>
+            <div class="d-flex gap-3 flex-wrap">
+                <a href="{% url 'nests:nest_dashboard' %}" class="btn btn-primary btn-lg px-4">
+                    <i class="bi bi-grid-1x2-fill me-1"></i> Go to Dashboard
+                </a>
+                <a href="{% url 'nests:nest_list_view' %}" class="btn btn-outline-secondary btn-lg px-4">
+                    <i class="bi bi-compass me-1"></i> Browse Nests
+                </a>
+            </div>
             {% endif %}
         </div>
 
