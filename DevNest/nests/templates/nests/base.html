@@ -14,7 +14,61 @@
 
 <body class="nest-shell">
 	<div class="nest-layout">
-		<aside class="nest-sidebar">
+		<!-- Offcanvas Sidebar for Mobile -->
+		<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+			<div class="offcanvas-header">
+				<h5 class="offcanvas-title" id="mobileSidebarLabel">Menu</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+			</div>
+			<div class="offcanvas-body p-0">
+				{% comment %} Sidebar content duplicated for mobile {% endcomment %}
+				<nav class="nest-sidebar__nav" aria-label="Primary">
+					<ul class="nav flex-column w-100">
+						<li class="nav-item">
+							<a class="nav-link nest-sidebar__link {% if request.path == '/nests/' %}is-active{% endif %}" href="{% url 'nests:nest_dashboard' %}">
+								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" stroke="currentColor"/></svg>
+								<span>Dashboard</span>
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link nest-sidebar__link {% if '/nests/browse/' in request.path %}is-active{% endif %}" href="{% url 'nests:nest_list_view' %}">
+								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 3H4v7h7V3Zm9 0h-7v7h7V3ZM11 14H4v7h7v-7Zm9 0h-7v7h7v-7Z" stroke="currentColor"/></svg>
+								<span>Browse Nests</span>
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link nest-sidebar__link {% if '/nests/request/' in request.path %}is-active{% endif %}" href="{% url 'nests:request_nest_view' %}">
+								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor"/></svg>
+								<span>Request Nest</span>
+							</a>
+						</li>
+						{% if request.user.is_staff or request.user.is_superuser %}
+						<li class="nav-item">
+							<a class="nav-link nest-sidebar__link {% if '/nests/staff/review/' in request.path %}is-active{% endif %}" href="{% url 'nests:staff_nest_review' %}">
+								<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 7 3v6c0 5-3.5 8.7-7 10-3.5-1.3-7-5-7-10V6l7-3Z" stroke="currentColor"/></svg>
+								<span>Staff Review</span>
+							</a>
+						</li>
+						{% endif %}
+					</ul>
+				</nav>
+				{% if request.user.is_authenticated %}
+				<div class="nest-sidebar__footer">
+					<a class="nest-sidebar__link {% if '/accounts/profile/' in request.path %}is-active{% endif %}" href="{% url 'accounts:user_profile_view' request.user.username %}">
+						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" stroke="currentColor"/></svg>
+						<span>{{ request.user.username }}</span>
+					</a>
+					<a class="nest-sidebar__link" href="{% url 'accounts:log_out' %}?next={{request.path}}">
+						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 7H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h3M16 17l5-5-5-5M21 12H9" stroke="currentColor"/></svg>
+						<span>Log Out</span>
+					</a>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+
+		<!-- Desktop Sidebar -->
+		<aside class="nest-sidebar d-none d-lg-block">
 			<a class="nest-sidebar__brand" href="/">
 				<img src="{% static 'images/logo.svg' %}" alt="DevNest" width="28" height="28" style="border-radius:6px;">
 				<span class="nest-sidebar__name">DevNest</span>
@@ -56,6 +110,10 @@
 
 		<div class="nest-main-wrap">
 			<header class="nest-topbar-v2">
+				<!-- Hamburger for mobile -->
+				<button class="btn btn-outline-secondary d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar" aria-label="Open menu">
+					<i class="bi bi-list" style="font-size:1.5rem;"></i>
+				</button>
 				<div class="nest-topbar-v2__crumb">{% block topbar_crumb %}DevNest / Nests{% endblock %}</div>
 				<div class="d-flex align-items-center gap-2">
 					{% if request.user.is_authenticated %}
