@@ -76,6 +76,19 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING("Existing demo data reset complete."))
 
             User = get_user_model()
+            admin_user, created = User.objects.get_or_create(
+                username="admin",
+                defaults={
+                    "first_name": "Admin",
+                    "last_name": "User",
+                    "email": "admin@devnest.demo",
+                    "is_staff": True,
+                    "is_superuser": True,
+                },
+            )
+            if created:
+                admin_user.set_password("DemoPass123!")
+                admin_user.save(update_fields=["password"])
 
             # --- Users ---
             users_data = [
@@ -104,6 +117,7 @@ class Command(BaseCommand):
                     user.set_password("DemoPass123!")
                     user.save(update_fields=["password"])
                 users[username] = user
+            users[admin_user.username] = admin_user
 
             # --- Nests ---
             nest_python, _ = Nest.objects.get_or_create(
@@ -122,6 +136,14 @@ class Command(BaseCommand):
                     "status": Nest.Status.APPROVED,
                 },
             )
+            nest_public, _ = Nest.objects.get_or_create(
+                name="Public Nest",
+                defaults={
+                    "description": "Open community nest for every new user to explore DevNest right away.",
+                    "creator": admin_user,
+                    "status": Nest.Status.APPROVED,
+                },
+            )
             nest_pending, _ = Nest.objects.get_or_create(
                 name="AI Fundamentals (Summer)",
                 defaults={
@@ -133,9 +155,17 @@ class Command(BaseCommand):
 
             self._set_dt(nest_python, "created_at", now - timedelta(days=95))
             self._set_dt(nest_ds, "created_at", now - timedelta(days=38))
+            self._set_dt(nest_public, "created_at", now - timedelta(days=120))
             self._set_dt(nest_pending, "created_at", now - timedelta(days=2))
 
             memberships = [
+                (nest_public, "admin", NestMembership.Role.INSTRUCTOR, NestMembership.Status.ACTIVE, 120),
+                (nest_public, "site_staff", NestMembership.Role.ASSISTANT, NestMembership.Status.ACTIVE, 75),
+                (nest_public, "student_omar", NestMembership.Role.MEMBER, NestMembership.Status.ACTIVE, 68),
+                (nest_public, "student_sara", NestMembership.Role.MEMBER, NestMembership.Status.ACTIVE, 54),
+                (nest_public, "student_lina", NestMembership.Role.MEMBER, NestMembership.Status.ACTIVE, 18),
+                (nest_public, "student_hamad", NestMembership.Role.MEMBER, NestMembership.Status.ACTIVE, 13),
+
                 (nest_python, "instructor_ali", NestMembership.Role.INSTRUCTOR, NestMembership.Status.ACTIVE, 94),
                 (nest_python, "assistant_noor", NestMembership.Role.ASSISTANT, NestMembership.Status.ACTIVE, 80),
                 (nest_python, "student_omar", NestMembership.Role.MEMBER, NestMembership.Status.ACTIVE, 60),
@@ -165,7 +195,7 @@ class Command(BaseCommand):
             pt_announcement, _ = PostType.objects.get_or_create(name="Announcement")
 
             tags = {}
-            for tag_name in ["python", "loops", "functions", "exam-prep", "arrays", "trees"]:
+            for tag_name in ["python", "loops", "functions", "exam-prep", "arrays", "trees", "welcome", "showcase", "community"]:
                 tag, _ = PostTag.objects.get_or_create(name=tag_name)
                 tags[tag_name] = tag
 
@@ -202,6 +232,30 @@ class Command(BaseCommand):
                 self._set_dt(post, "created_at", ts)
                 posts.append(post)
 
+            public_posts = []
+            public_posts_data = [
+                ("admin", "Welcome to the Public Nest", "Start here to explore DevNest. This nest is open to every newly registered user and is meant to showcase the platform.", pt_announcement, True, 118, ["welcome", "community"]),
+                ("site_staff", "How to explore the demo", "Check posts first, then open content and assessments to see how a full learning community is organized.", pt_discussion, True, 24, ["showcase", "community"]),
+                ("student_lina", "What should I click first?", "I just joined DevNest. What is the fastest way to understand how everything fits together?", pt_question, False, 4, ["welcome", "showcase"]),
+                ("student_hamad", "My favorite part of the demo", "The mix of community posts, learning materials, and quick assessments makes the project feel complete.", pt_discussion, False, 1, ["community"]),
+            ]
+            for username, title, content, post_type, pinned, days_ago, tag_names in public_posts_data:
+                post, _ = Post.objects.get_or_create(
+                    nest=nest_public,
+                    user=users[username],
+                    title=title,
+                    defaults={"content": content, "post_type": post_type, "is_pinned": pinned},
+                )
+                post.content = content
+                post.post_type = post_type
+                post.is_pinned = pinned
+                post.save(update_fields=["content", "post_type", "is_pinned"])
+                post.tags.set([tags[name] for name in tag_names])
+
+                ts = now - timedelta(days=days_ago, hours=(days_ago % 4) + 1)
+                self._set_dt(post, "created_at", ts)
+                public_posts.append(post)
+
             # --- Comments and replies ---
             comments_data = [
                 (posts[1], "assistant_noor", "Use `for` when you know iteration bounds; `while` for condition-driven loops.", None, 27),
@@ -237,6 +291,39 @@ class Command(BaseCommand):
             )
             self._set_dt(reply, "created_at", now - timedelta(days=26, hours=6))
 
+            public_comment_1, _ = Comment.objects.get_or_create(
+                post=public_posts[2],
+                user=users["admin"],
+                content="Start with the pinned post, then open the content library and the sample check-in assessment.",
+                parent=None,
+                defaults={"approved": True, "is_verified": True},
+            )
+            public_comment_1.approved = True
+            public_comment_1.is_verified = True
+            public_comment_1.save(update_fields=["approved", "is_verified"])
+            self._set_dt(public_comment_1, "created_at", now - timedelta(days=3, hours=5))
+
+            public_comment_2, _ = Comment.objects.get_or_create(
+                post=public_posts[2],
+                user=users["student_sara"],
+                content="I would browse the posts tab first because it quickly shows announcements, questions, and community activity.",
+                parent=None,
+                defaults={"approved": True, "is_verified": False},
+            )
+            public_comment_2.approved = True
+            public_comment_2.is_verified = False
+            public_comment_2.save(update_fields=["approved", "is_verified"])
+            self._set_dt(public_comment_2, "created_at", now - timedelta(days=2, hours=8))
+
+            public_reply, _ = Comment.objects.get_or_create(
+                post=public_posts[2],
+                user=users["student_lina"],
+                parent=public_comment_1,
+                content="Perfect, that gives me a starting path.",
+                defaults={"approved": True, "is_verified": False},
+            )
+            self._set_dt(public_reply, "created_at", now - timedelta(days=2, hours=4))
+
             # --- Votes ---
             votes_data = [
                 (posts[1], "assistant_noor", 1),
@@ -252,11 +339,28 @@ class Command(BaseCommand):
                 vote.value = value
                 vote.save(update_fields=["value"])
 
+            public_votes_data = [
+                (public_posts[2], "admin", 1),
+                (public_posts[2], "student_sara", 1),
+                (public_posts[3], "student_omar", 1),
+                (public_posts[3], "student_lina", 1),
+            ]
+            for post, username, value in public_votes_data:
+                vote, _ = PostVote.objects.get_or_create(post=post, user=users[username], defaults={"value": value})
+                vote.value = value
+                vote.save(update_fields=["value"])
+
             # --- Subscriptions / read status ---
             for post in posts:
                 for username in ["student_omar", "student_sara", "student_hamad"]:
                     if post.nest == nest_python and username == "student_hamad":
                         continue
+                    sub, _ = PostSubscription.objects.get_or_create(post=post, user=users[username])
+                    sub.is_enabled = True
+                    sub.save(update_fields=["is_enabled"])
+
+            for post in public_posts:
+                for username in ["student_omar", "student_sara", "student_hamad", "student_lina"]:
                     sub, _ = PostSubscription.objects.get_or_create(post=post, user=users[username])
                     sub.is_enabled = True
                     sub.save(update_fields=["is_enabled"])
@@ -312,7 +416,71 @@ class Command(BaseCommand):
             Answer.objects.get_or_create(submission=sub_omar, question=q1, defaults={"selected_choice": c1, "is_correct": True})
             Answer.objects.get_or_create(submission=sub_omar, question=q2, defaults={"text_answer": "Functions remove duplication.", "is_correct": True})
 
+            public_quiz, _ = Assessment.objects.get_or_create(
+                nest=nest_public,
+                title="Public Nest Check-in",
+                defaults={
+                    "description": "Quick orientation quiz for visitors exploring the demo nest.",
+                    "assessment_type": "quiz",
+                    "points": 10,
+                    "due_date": now + timedelta(days=10),
+                    "created_by": admin_user,
+                },
+            )
+            self._set_dt(public_quiz, "created_at", now - timedelta(days=15))
+
+            public_q1, _ = Question.objects.get_or_create(
+                assessment=public_quiz,
+                text="Which nest is open to every newly registered user?",
+                defaults={"question_type": "mcq", "points": 5},
+            )
+            public_q2, _ = Question.objects.get_or_create(
+                assessment=public_quiz,
+                text="Name one area you can explore from Public Nest.",
+                defaults={"question_type": "text", "points": 5},
+            )
+            public_c1, _ = Choice.objects.get_or_create(question=public_q1, text="Public Nest", defaults={"is_correct": True})
+            Choice.objects.get_or_create(question=public_q1, text="Pending Requests", defaults={"is_correct": False})
+
+            sub_public, _ = Submission.objects.get_or_create(assessment=public_quiz, student=users["student_lina"], defaults={"score": 10})
+            self._set_dt(sub_public, "submitted_at", now - timedelta(days=1))
+            Answer.objects.get_or_create(submission=sub_public, question=public_q1, defaults={"selected_choice": public_c1, "is_correct": True})
+            Answer.objects.get_or_create(submission=sub_public, question=public_q2, defaults={"text_answer": "Posts, content, and the sample assessment.", "is_correct": True})
+
             # --- Content ---
+            title_public, _ = Title.objects.get_or_create(
+                nest=nest_public,
+                created_by=admin_user,
+                name="Start Here - DevNest Tour",
+                defaults={"description": "Orientation materials for first-time visitors.", "sort_order": 1, "is_published": True},
+            )
+            self._set_dt(title_public, "created_at", now - timedelta(days=60))
+
+            unit_public, _ = Unit.objects.get_or_create(
+                title=title_public,
+                name="Getting Started",
+                defaults={"description": "A short walkthrough of the demo space.", "sort_order": 1, "is_published": True},
+            )
+            self._set_dt(unit_public, "created_at", now - timedelta(days=59))
+
+            topic_public, _ = Topic.objects.get_or_create(
+                unit=unit_public,
+                name="Explore the Demo",
+                defaults={"sort_order": 1, "status": Topic.StatusChoices.PUBLISHED, "due_date": now + timedelta(days=14)},
+            )
+            self._set_dt(topic_public, "created_at", now - timedelta(days=58))
+
+            TextContent.objects.get_or_create(
+                topic=topic_public,
+                text_title="Where to click first",
+                defaults={"body": "Open posts for community activity, then visit content and assessments to see a full learning workflow.", "format": "plain", "sort_order": 1},
+            )
+            LinkContent.objects.get_or_create(
+                topic=topic_public,
+                display_text="Django official tutorial",
+                defaults={"url": "https://docs.djangoproject.com/en/stable/intro/tutorial01/", "sort_order": 2},
+            )
+
             title_py, _ = Title.objects.get_or_create(
                 nest=nest_python,
                 created_by=users["instructor_ali"],
@@ -353,8 +521,194 @@ class Command(BaseCommand):
                 defaults={"url": "https://docs.python.org/3/tutorial/controlflow.html#defining-functions", "sort_order": 1},
             )
 
+            # --- DS Nest content ---
+            title_ds, _ = Title.objects.get_or_create(
+                nest=nest_ds,
+                created_by=users["instructor_ali"],
+                name="Week 1 - Arrays & Complexity",
+                defaults={"description": "Foundation concepts for data structures.", "sort_order": 1, "is_published": True},
+            )
+            self._set_dt(title_ds, "created_at", now - timedelta(days=36))
+
+            unit_arrays, _ = Unit.objects.get_or_create(
+                title=title_ds,
+                name="Arrays & Two-Pointer",
+                defaults={"description": "Core array techniques.", "sort_order": 1, "is_published": True},
+            )
+            self._set_dt(unit_arrays, "created_at", now - timedelta(days=35))
+
+            topic_complexity, _ = Topic.objects.get_or_create(
+                unit=unit_arrays,
+                name="Big-O Complexity",
+                defaults={"sort_order": 1, "status": Topic.StatusChoices.PUBLISHED, "due_date": now - timedelta(days=10)},
+            )
+            self._set_dt(topic_complexity, "created_at", now - timedelta(days=34))
+
+            topic_twopointer, _ = Topic.objects.get_or_create(
+                unit=unit_arrays,
+                name="Two-Pointer Technique",
+                defaults={"sort_order": 2, "status": Topic.StatusChoices.PUBLISHED, "due_date": now + timedelta(days=4)},
+            )
+            self._set_dt(topic_twopointer, "created_at", now - timedelta(days=20))
+
+            TextContent.objects.get_or_create(
+                topic=topic_complexity,
+                text_title="Big-O Quick Reference",
+                defaults={"body": "O(1) constant, O(log n) binary search, O(n) linear scan, O(n log n) merge sort, O(n^2) nested loops.", "format": "plain", "sort_order": 1},
+            )
+            LinkContent.objects.get_or_create(
+                topic=topic_twopointer,
+                display_text="Two Pointers - LeetCode Patterns",
+                defaults={"url": "https://leetcode.com/tag/two-pointers/", "sort_order": 1},
+            )
+            TextContent.objects.get_or_create(
+                topic=topic_twopointer,
+                text_title="Two-Pointer Template",
+                defaults={"body": "left, right = 0, len(arr)-1\nwhile left < right:\n    # process\n    left += 1 or right -= 1", "format": "plain", "sort_order": 2},
+            )
+
+            # --- CS101 Week 2 content ---
+            title_py2, _ = Title.objects.get_or_create(
+                nest=nest_python,
+                created_by=users["instructor_ali"],
+                name="Week 2 - Data & Files",
+                defaults={"description": "Lists, dicts, file I/O and error handling.", "sort_order": 2, "is_published": True},
+            )
+            self._set_dt(title_py2, "created_at", now - timedelta(days=18))
+
+            unit_data, _ = Unit.objects.get_or_create(
+                title=title_py2,
+                name="Collections",
+                defaults={"description": "Lists, tuples, and dicts.", "sort_order": 1, "is_published": True},
+            )
+            self._set_dt(unit_data, "created_at", now - timedelta(days=17))
+
+            topic_lists, _ = Topic.objects.get_or_create(
+                unit=unit_data,
+                name="Lists and Comprehensions",
+                defaults={"sort_order": 1, "status": Topic.StatusChoices.PUBLISHED, "due_date": now - timedelta(days=5)},
+            )
+            self._set_dt(topic_lists, "created_at", now - timedelta(days=16))
+
+            topic_dicts, _ = Topic.objects.get_or_create(
+                unit=unit_data,
+                name="Dictionaries & Sets",
+                defaults={"sort_order": 2, "status": Topic.StatusChoices.DRAFT, "due_date": now + timedelta(days=7)},
+            )
+            self._set_dt(topic_dicts, "created_at", now - timedelta(days=2))
+
+            TextContent.objects.get_or_create(
+                topic=topic_lists,
+                text_title="List Comprehension Patterns",
+                defaults={"body": "[x*2 for x in range(10) if x % 2 == 0]\nResult: [0, 4, 8, 12, 16]", "format": "plain", "sort_order": 1},
+            )
+            LinkContent.objects.get_or_create(
+                topic=topic_lists,
+                display_text="Python List Comprehensions - Real Python",
+                defaults={"url": "https://realpython.com/list-comprehension-python/", "sort_order": 2},
+            )
+
+            # --- DS Nest assessment ---
+            ds_quiz, _ = Assessment.objects.get_or_create(
+                nest=nest_ds,
+                title="Quiz 1 - Arrays & Big-O",
+                defaults={
+                    "description": "Test your understanding of arrays and complexity.",
+                    "assessment_type": "quiz",
+                    "points": 15,
+                    "due_date": now - timedelta(days=5),
+                    "created_by": users["instructor_ali"],
+                },
+            )
+            self._set_dt(ds_quiz, "created_at", now - timedelta(days=20))
+
+            dq1, _ = Question.objects.get_or_create(
+                assessment=ds_quiz,
+                text="What is the time complexity of binary search?",
+                defaults={"question_type": "mcq", "points": 5},
+            )
+            dq2, _ = Question.objects.get_or_create(
+                assessment=ds_quiz,
+                text="Describe when you would use a two-pointer approach.",
+                defaults={"question_type": "text", "points": 10},
+            )
+            dc1, _ = Choice.objects.get_or_create(question=dq1, text="O(log n)", defaults={"is_correct": True})
+            Choice.objects.get_or_create(question=dq1, text="O(n)", defaults={"is_correct": False})
+            Choice.objects.get_or_create(question=dq1, text="O(n^2)", defaults={"is_correct": False})
+
+            sub_hamad, _ = Submission.objects.get_or_create(assessment=ds_quiz, student=users["student_hamad"], defaults={"score": 13})
+            self._set_dt(sub_hamad, "submitted_at", now - timedelta(days=4))
+            Answer.objects.get_or_create(submission=sub_hamad, question=dq1, defaults={"selected_choice": dc1, "is_correct": True})
+            Answer.objects.get_or_create(submission=sub_hamad, question=dq2, defaults={"text_answer": "When searching from both ends toward the center to avoid O(n^2).", "is_correct": True})
+
+            # --- Additional quiz questions for CS101 ---
+            q3, _ = Question.objects.get_or_create(
+                assessment=quiz,
+                text="What keyword is used to define a function in Python?",
+                defaults={"question_type": "mcq", "points": 5},
+            )
+            q4, _ = Question.objects.get_or_create(
+                assessment=quiz,
+                text="Write a loop that prints numbers 1 to 5.",
+                defaults={"question_type": "text", "points": 5},
+            )
+            c3, _ = Choice.objects.get_or_create(question=q3, text="def", defaults={"is_correct": True})
+            Choice.objects.get_or_create(question=q3, text="func", defaults={"is_correct": False})
+            Choice.objects.get_or_create(question=q3, text="function", defaults={"is_correct": False})
+
+            # Sara submits quiz
+            sub_sara, _ = Submission.objects.get_or_create(assessment=quiz, student=users["student_sara"], defaults={"score": 15})
+            self._set_dt(sub_sara, "submitted_at", now - timedelta(days=12))
+            Answer.objects.get_or_create(submission=sub_sara, question=q1, defaults={"selected_choice": c1, "is_correct": True})
+            Answer.objects.get_or_create(submission=sub_sara, question=q2, defaults={"text_answer": "Functions let us reuse code and reduce repetition.", "is_correct": True})
+            Answer.objects.get_or_create(submission=sub_sara, question=q3, defaults={"selected_choice": c3, "is_correct": True})
+            Answer.objects.get_or_create(submission=sub_sara, question=q4, defaults={"text_answer": "for i in range(1, 6): print(i)", "is_correct": True})
+
+            # Omar also answers new questions
+            Answer.objects.get_or_create(submission=sub_omar, question=q3, defaults={"selected_choice": c3, "is_correct": True})
+            Answer.objects.get_or_create(submission=sub_omar, question=q4, defaults={"text_answer": "for i in range(1, 6):\n    print(i)", "is_correct": True})
+
+            # --- Rejected membership (moderation demo) ---
+            rejected_user = users["student_lina"]
+            rejected_membership, _ = NestMembership.objects.get_or_create(
+                nest=nest_ds,
+                user=rejected_user,
+                defaults={"role": NestMembership.Role.MEMBER, "status": NestMembership.Status.REJECTED},
+            )
+            rejected_membership.status = NestMembership.Status.REJECTED
+            rejected_membership.save(update_fields=["status"])
+            self._set_dt(rejected_membership, "joined_at", now - timedelta(days=10))
+
+            # --- Unapproved comment (moderation demo) ---
+            unapproved_post = posts[3]  # "Mock exam tips for week 8"
+            Comment.objects.get_or_create(
+                post=unapproved_post,
+                user=users["student_hamad"],
+                content="Can we also get a practice exam from last year?",
+                parent=None,
+                defaults={"approved": False, "is_verified": False},
+            )
+
+            # --- Profile about texts ---
+            about_texts = {
+                "instructor_ali": "Computer Science instructor with 8 years of experience. Passionate about making programming accessible to everyone.",
+                "assistant_noor": "Graduate TA specializing in algorithms and Python. Here to help you succeed.",
+                "student_omar": "Second-year CS student. Interested in backend development and competitive programming.",
+                "student_sara": "Studying CS with a focus on data science. Love collaborative learning.",
+                "student_hamad": "Bootcamp enthusiast. Working through data structures one problem at a time.",
+                "student_lina": "Freshman exploring programming for the first time.",
+                "site_staff": "Platform administrator.",
+            }
+            for username, about in about_texts.items():
+                user = users[username]
+                profile = user.profile
+                if not profile.about:
+                    profile.about = about
+                    profile.save(update_fields=["about"])
+
             # --- Recognition snapshots ---
             rec_data = [
+                ("student_lina", nest_public, 72, "Early Explorer", "Community Starter"),
                 ("student_omar", nest_python, 130, "Core Member", "Problem Solver"),
                 ("student_sara", nest_python, 88, "Top Contributor", "Discussion Starter"),
                 ("student_hamad", nest_ds, 64, "Engaged Member", "Collaborator"),
@@ -368,6 +722,8 @@ class Command(BaseCommand):
 
             # --- Notifications (mix old/new + read/unread) ---
             notif_data = [
+                ("student_lina", "Welcome to the Public Nest. Start with the pinned post and the orientation topic.", f"/nests/{nest_public.pk}/posts/", False, 0),
+                ("student_sara", "New discussion in Public Nest: How to explore the demo.", f"/nests/{nest_public.pk}/posts/", False, 2),
                 ("student_omar", "Announcement: Lab moved to Thursday.", f"/nests/{nest_python.pk}/posts/", False, 0),
                 ("student_omar", "New reply on your loop question.", f"/nests/{nest_python.pk}/posts/", False, 1),
                 ("student_omar", "Quiz 1 score has been published.", f"/nests/{nest_python.pk}/assessments/", True, 12),

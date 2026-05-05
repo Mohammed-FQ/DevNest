@@ -14,7 +14,7 @@ from .models import Profile
 from django.db import transaction
 from posts.models import Post
 from posts.models import Comment
-from nests.models import NestMembership
+from nests.models import Nest, NestMembership
 from recognition.models import NestRecognition
 from main.models import ContactMessage, Report
 
@@ -56,6 +56,74 @@ def send_welcome_email(user):
     email_message.send(fail_silently=True)
 
 
+def _public_signup_nest():
+    admin_user, created = User.objects.get_or_create(
+        username='admin',
+        defaults={
+            'first_name': 'Admin',
+            'last_name': 'User',
+            'email': 'admin@devnest.demo',
+            'is_staff': True,
+            'is_superuser': True,
+        },
+    )
+    if created:
+        admin_user.set_unusable_password()
+        admin_user.save(update_fields=['password'])
+    elif not admin_user.is_superuser or not admin_user.is_staff:
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.save(update_fields=['is_staff', 'is_superuser'])
+
+    public_nest, _ = Nest.objects.get_or_create(
+        name='Public Nest',
+        defaults={
+            'description': 'Open community nest for all newly registered users.',
+            'creator': admin_user,
+            'status': Nest.Status.APPROVED,
+        },
+    )
+    if public_nest.creator_id != admin_user.id or public_nest.status != Nest.Status.APPROVED:
+        public_nest.creator = admin_user
+        public_nest.status = Nest.Status.APPROVED
+        public_nest.save(update_fields=['creator', 'status'])
+
+    owner_membership, _ = NestMembership.objects.get_or_create(
+        nest=public_nest,
+        user=admin_user,
+        defaults={
+            'role': NestMembership.Role.INSTRUCTOR,
+            'status': NestMembership.Status.ACTIVE,
+        },
+    )
+    if owner_membership.role != NestMembership.Role.INSTRUCTOR or owner_membership.status != NestMembership.Status.ACTIVE:
+        owner_membership.role = NestMembership.Role.INSTRUCTOR
+        owner_membership.status = NestMembership.Status.ACTIVE
+        owner_membership.save(update_fields=['role', 'status'])
+
+    return public_nest
+
+
+def _auto_join_public_nest(user):
+    public_nest = _public_signup_nest()
+    if not public_nest:
+        return None
+
+    membership, _ = NestMembership.objects.get_or_create(
+        nest=public_nest,
+        user=user,
+        defaults={
+            'role': NestMembership.Role.MEMBER,
+            'status': NestMembership.Status.ACTIVE,
+        },
+    )
+    if membership.role != NestMembership.Role.MEMBER or membership.status != NestMembership.Status.ACTIVE:
+        membership.role = NestMembership.Role.MEMBER
+        membership.status = NestMembership.Status.ACTIVE
+        membership.save(update_fields=['role', 'status'])
+    return public_nest
+
+
 def sign_up(request: HttpRequest):
 
     if request.method == "POST":
@@ -77,6 +145,8 @@ def sign_up(request: HttpRequest):
                 if uploaded_avatar:
                     profile.avatar = uploaded_avatar
                 profile.save()
+
+                _auto_join_public_nest(new_user)
         except Exception as e:
             messages.error(request, "Couldn't register user. Try again", "alert-danger")
             print(e)
