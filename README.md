@@ -137,8 +137,8 @@ DevNest is a comprehensive academic collaboration platform designed to centraliz
 ---
 
 # 7. Wireframe & UI Layout
+[wireframe](Wireframe.pdf)
 
-*To be added by contributor - Add your UI wireframes, page layouts, and design system documentation here*
 
 ---
 
